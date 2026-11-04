@@ -2,6 +2,7 @@ services:
   - type: web
     name: lifelink
     runtime: node
+    plan: free
     buildCommand: npm ci --prefix frontend && npm run build --prefix frontend && npm ci --prefix backend
     startCommand: npm --prefix backend start
     healthCheckPath: /api/health

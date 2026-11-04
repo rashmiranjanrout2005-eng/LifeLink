@@ -58,6 +58,6 @@ In the Google Cloud Console, create an OAuth client ID for a web application and
 - Row-level security policies are defined in migrations `009`–`011`. The backend service-role key bypasses RLS, so protected API routes enforce authentication and role checks.
 - To promote an administrator, use the Supabase SQL editor as a trusted project owner: `update public.profiles set role = 'admin' where email = 'trusted-account@example.com';`. Never expose an admin role selector in public signup.
 
-## Live Deployment
+## Free Hosting
 
-Follow the steps in `docs/deployment-guide.md`.
+The site and API can be deployed together on Vercel Hobby ($0) with Supabase Free for authentication and database storage. No paid trial or payment method is required for this setup. Follow `docs/deployment-guide.md`; never expose the Supabase service-role key in a `VITE_*` variable.

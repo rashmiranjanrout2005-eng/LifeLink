@@ -8,9 +8,9 @@ const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'demo-key';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'demo-key';
 
 export const isSupabaseConfigured = Boolean(
-  process.env.SUPABASE_URL &&
-  process.env.SUPABASE_ANON_KEY &&
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_URL?.trim() &&
+  process.env.SUPABASE_ANON_KEY?.trim() &&
+  process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
 );
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, { auth: { persistSession: false } });

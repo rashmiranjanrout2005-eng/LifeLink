@@ -1,0 +1,4 @@
+.table-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.table-action { border: none; background: transparent; color: var(--primary); cursor: pointer; }
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.metric-box { background: white; border: 1px solid var(--border); border-radius: 16px; padding: 1.25rem; }

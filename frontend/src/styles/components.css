@@ -1,0 +1,11 @@
+.section-shell { padding: 3rem 0; }
+.card { padding: 1.25rem; border-radius: 18px; border: 1px solid var(--border); background: white; }
+.stat-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border-radius: 18px; }
+.stat-card p { margin: 0; color: var(--muted); }
+.stat-card h3 { margin: 0.3rem 0 0; font-size: 1.8rem; }
+.stat-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--light-bg); display: grid; place-items: center; font-size: 1.25rem; }
+.chart-card, .activity-card { padding: 1.25rem; border-radius: 18px; border: 1px solid var(--border); background: white; }
+
+.activity-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 0; border-bottom: 1px solid var(--border); }
+.activity-row:last-child { border-bottom: none; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); display: inline-block; }

@@ -19,7 +19,3 @@
 Vercel Hobby and Supabase Free are no-cost plans; no trial is required for this setup. Both providers enforce free-tier limits, and Supabase projects may pause after extended inactivity. Check each provider's current plan limits before relying on the app for production or urgent medical needs.
 
 Promote a trusted account to administrator through a secure server-side Supabase operation only; never let a public registration request assign the `admin` role. RLS policies and API authorization checks depend on this distinction.
-
-## Free-tier notes
-
-- Supabase free tier has limits on project resources and database size.

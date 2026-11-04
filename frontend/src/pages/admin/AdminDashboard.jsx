@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, Droplets, Hospital, RefreshCw, Users } from 'lucide-react';
 import AdminLayout from '../../components/layout/AdminLayout';
 import StatCard from '../../components/dashboard/StatCard';
-import DonationChart from '../../components/dashboard/DonationChart';
-import BloodGroupChart from '../../components/dashboard/BloodGroupChart';
 import RecentActivity from '../../components/dashboard/RecentActivity';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+
+const DonationChart = lazy(() => import('../../components/dashboard/DonationChart'));
+const BloodGroupChart = lazy(() => import('../../components/dashboard/BloodGroupChart'));
 
 const emptyStats = { donors: 0, hospitals: 0, bloodUnits: 0, pendingRequests: 0 };
 const emptyCharts = { donations: [], bloodGroups: [] };
@@ -58,8 +59,12 @@ export default function AdminDashboard() {
             <StatCard title="Pending Requests" value={stats.pendingRequests.toLocaleString()} icon={<Activity size={21} />} />
           </div>
           <div className="card-grid dashboard-charts">
-            <DonationChart data={charts.donations} />
-            <BloodGroupChart data={charts.bloodGroups} />
+            <Suspense fallback={<div className="chart-card dashboard-empty" role="status">Loading chart...</div>}>
+              <DonationChart data={charts.donations} />
+            </Suspense>
+            <Suspense fallback={<div className="chart-card dashboard-empty" role="status">Loading chart...</div>}>
+              <BloodGroupChart data={charts.bloodGroups} />
+            </Suspense>
           </div>
           <div className="dashboard-activity"><RecentActivity /></div>
         </>

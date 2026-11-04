@@ -110,7 +110,7 @@ export default function Home() {
               <div className="art-ring art-ring-one" />
               <div className="art-ring art-ring-two" />
               <div className="art-orbit"><span className="orbit-bead" /><span className="orbit-heart"><Heart size={13} fill="currentColor" /></span></div>
-              <div className="hero-art-image"><img src="/images/hero-image.svg" alt="" /></div>
+              <div className="hero-art-image"><img src="/images/hero-image.svg" alt="" fetchPriority="high" decoding="async" /></div>
               <div className="floating-card floating-card-top"><span className="float-icon"><Activity size={17} /></span><span><strong>Help, made closer</strong><small>Find donors in your area</small></span><ArrowRight size={16} /></div>
               <div className="floating-card floating-card-bottom"><span className="float-icon float-icon-red"><Droplets size={18} /></span><span><strong>Blood availability</strong><small>Check stock listings</small></span><span className="float-live">VIEW</span></div>
               <div className="art-sparkle sparkle-one">✳</div><div className="art-sparkle sparkle-two">✦</div>

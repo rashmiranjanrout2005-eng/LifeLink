@@ -51,7 +51,7 @@ The system handles donor registration, inventory control, request management, no
 
 ## 12. Feasibility Study
 
-Technical, operational, and financial feasibility are favorable using Supabase and Vercel.
+Technical, operational, and financial feasibility are favorable using Vercel Hobby and Supabase free tiers.
 
 ## 13. Hardware Requirements
 
@@ -155,6 +155,7 @@ The BBMS project provides a complete digital foundation for managing blood donat
 ## 28. References
 
 - Supabase documentation
+- Vercel documentation
 - Express documentation
 - React documentation
 - Vite documentation

@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { fileURLToPath } from 'node:url';
 import { corsOptions } from './config/cors.js';
 import { rateLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -14,6 +15,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 
 const app = express();
+const frontendDist = fileURLToPath(new URL('../../frontend/dist/', import.meta.url));
 
 app.use(helmet());
 app.use(cors(corsOptions));
@@ -32,6 +34,12 @@ app.use('/api/requests', requestRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+app.use(express.static(frontendDist));
+app.get('*', (req, res, next) => {
+  if (req.path === '/api' || req.path.startsWith('/api/')) return next();
+  return res.sendFile(`${frontendDist}index.html`);
+});
 
 app.use(errorHandler);
 

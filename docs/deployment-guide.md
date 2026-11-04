@@ -1,24 +1,19 @@
 # Deployment Guide
 
-1. Create a separate GitHub repository for LifeLink and push this project to it. Do not use the unrelated StudentMate repository.
-2. In Supabase, run every SQL migration in `supabase/migrations/` in filename order. Enable email/password authentication.
-3. In Render, create a Blueprint from the repository. Render reads the root `render.yaml` and asks for the Supabase URL, anon key, service-role key, and frontend origin. Keep the service-role key in Render only.
-4. After the Render API deploys, copy its public origin (for example, `https://lifelink-api.onrender.com`) and check `<API origin>/api/health`.
-5. In Vercel, import the same GitHub repository and set the project root directory to `frontend`. Add these build environment variables:
-   - `VITE_SUPABASE_URL`: Supabase project URL.
-   - `VITE_SUPABASE_ANON_KEY`: Supabase anon/publishable key.
-   - `VITE_API_URL`: Render API origin followed by `/api`.
-6. After Vercel deploys, set Render's `FRONTEND_URL` to the exact Vercel site origin (without a trailing slash), then redeploy the API.
-7. In Supabase Authentication → URL Configuration, set the production site as the Site URL and allow both `http://localhost:5173/auth/callback` and `<Vercel site origin>/auth/callback`.
-8. For Google sign-in, configure the Google OAuth client in Google Cloud Console, allow the Supabase callback URL shown by Supabase, then add its client ID and secret in Supabase Authentication → Providers → Google.
-9. Test mobile layout, email signup/verification, Google sign-in, donor registration/search, stock availability, request submission/tracking, role-protected admin operations, and the API health endpoint.
+1. Push this project to its separate LifeLink GitHub repository. Do not use the unrelated StudentMate repository.
+2. In Supabase, run every SQL migration in `supabase/migrations/` in filename order and enable email/password authentication.
+3. In Render, create a Blueprint from the LifeLink repository's `main` branch. Render reads the root `render.yaml` and builds the frontend and backend into one web service.
+4. Enter the requested Supabase settings in Render: project URL, anon/publishable key, and service-role key. The frontend settings use the URL and anon/publishable key; the service-role key is for the backend only. Never put it in a `VITE_` variable.
+5. After Render deploys, open its service URL on a phone and check `<service URL>/api/health`.
+6. In Supabase Authentication → URL Configuration, set the Render service URL as the Site URL and add `<service URL>/auth/callback` to the allowed redirect URLs. Keep `http://localhost:5173/auth/callback` for local development.
+7. For Google sign-in, configure the Google OAuth client in Google Cloud Console, allow the Supabase callback URL shown by Supabase, then add its client ID and secret in Supabase Authentication → Providers → Google.
+8. Test mobile layout, email signup/verification, Google sign-in, donor registration/search, stock availability, request submission/tracking, and role-protected admin operations.
 
-The `frontend/vercel.json` rewrite supports client-side routes such as `/auth/callback` when opened directly. Never place the backend service-role key in a Vercel variable beginning with `VITE_`.
+The Render service serves the frontend and `/api` from the same public origin, so a separate Vercel project or cross-origin API configuration is not needed.
 
 Promote a trusted account to administrator through a secure server-side Supabase operation only; never let a public registration request assign the `admin` role. RLS policies and API authorization checks depend on this distinction.
 
 ## Free-tier notes
 
 - Supabase free tier has limits on project resources and database size.
-- Vercel free tier includes limited build minutes and bandwidth.
 - Render free tier may impose sleep time and usage constraints.

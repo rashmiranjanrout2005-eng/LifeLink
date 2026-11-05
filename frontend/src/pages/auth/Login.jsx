@@ -6,7 +6,7 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import GoogleMark from '../../components/common/GoogleMark';
 import { useAuth } from '../../context/AuthContext';
-import { getPostAuthPath, saveAuthRedirect } from '../../utils/authRedirect';
+import { getPostAuthPath } from '../../utils/authRedirect';
 
 export default function Login() {
   const { signIn, signInWithGoogle } = useAuth();
@@ -36,10 +36,10 @@ export default function Login() {
   const handleGoogle = async () => {
     setGoogleBusy(true);
     try {
-      saveAuthRedirect(requestedPath);
-      await signInWithGoogle();
+      const user = await signInWithGoogle();
+      toast.success('Welcome back.');
+      navigate(getPostAuthPath(user, requestedPath), { replace: true });
     } catch (error) {
-      saveAuthRedirect(null);
       toast.error(error.message || 'Google sign-in is unavailable.');
       setGoogleBusy(false);
     }
@@ -79,7 +79,7 @@ export default function Login() {
             </div>
             <button className="btn btn-primary auth-submit" type="submit" disabled={busy}>{busy ? 'Signing in…' : <>Sign in <ArrowRight size={17} /></>}</button>
             <p className="auth-switch">New to LifeLink? <Link to="/register">Create an account</Link></p>
-            <p className="auth-note">Google sign-in requires the Google provider to be enabled in your Supabase project.</p>
+            <p className="auth-note">Google sign-in requires the Google provider to be enabled in Firebase Authentication.</p>
           </form>
         </section>
       </main>

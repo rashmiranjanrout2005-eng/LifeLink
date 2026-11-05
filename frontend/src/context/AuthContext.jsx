@@ -1,119 +1,110 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  GoogleAuthProvider,
+  updateProfile
+} from 'firebase/auth';
+import api from '../services/api';
+import { auth, isFirebaseConfigured } from '../firebase';
 
 const AuthContext = createContext(null);
-const isSupabaseConfigured = Boolean(
-  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
-);
-const loadSupabase = () => import('../services/supabase').then(({ supabase }) => supabase);
 
-function hasStoredAuthSession() {
-  if (!isSupabaseConfigured) return false;
-  const projectRef = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
-  try {
-    return window.localStorage.getItem(`sb-${projectRef}-auth-token`) !== null;
-  } catch (error) {
-    console.error('Unable to check for a saved authentication session:', error.message);
-    return true;
-  }
+function getAuthError(error) {
+  const messages = {
+    'auth/configuration-not-found': 'Firebase Authentication is not set up for this project. In Firebase Console, open Authentication, click Get started, then enable Google under Sign-in method.',
+    'auth/operation-not-allowed': 'Google sign-in is disabled for this Firebase project. Enable Google under Firebase Console → Authentication → Sign-in method.',
+    'auth/unauthorized-domain': `This site is not authorized for Firebase sign-in. Add ${window.location.hostname} under Firebase Console → Authentication → Settings → Authorized domains.`
+  };
+  return messages[error.code] || error.message || 'Firebase authentication failed.';
+}
+
+async function loadProfile(firebaseUser, profileIntent) {
+  const response = profileIntent
+    ? await api.post('/auth/profile', profileIntent)
+    : await api.get('/auth/me');
+  return { ...firebaseUser, role: response.data.user?.role || 'donor' };
 }
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState(null);
-  const authInitializationRef = useRef(null);
-  const subscriptionRef = useRef(null);
-  const mountedRef = useRef(false);
-
-  const initializeAuth = () => {
-    if (!authInitializationRef.current) {
-      authInitializationRef.current = loadSupabase().then(async (supabase) => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-          setSession(nextSession);
-          setUser(nextSession?.user ?? null);
-          setLoading(false);
-        });
-        subscriptionRef.current = subscription;
-
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        if (mountedRef.current) {
-          setSession(data.session);
-          setUser(data.session?.user ?? null);
-          setLoading(false);
-        }
-        return supabase;
-      }).catch((error) => {
-        authInitializationRef.current = null;
-        throw error;
-      });
-    }
-    return authInitializationRef.current;
-  };
+  const profileIntentRef = useRef(null);
 
   useEffect(() => {
-    mountedRef.current = true;
-    if (window.location.pathname === '/auth/callback' || hasStoredAuthSession()) {
-      initializeAuth().catch((error) => {
-        console.error('Unable to initialize authentication:', error.message);
-        if (mountedRef.current) setLoading(false);
-      });
-    } else {
-      setLoading(false);
-    }
-
-    return () => {
-      mountedRef.current = false;
-      subscriptionRef.current?.unsubscribe();
-      subscriptionRef.current = null;
-    };
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+      try {
+        const profileUser = await loadProfile(firebaseUser, profileIntentRef.current);
+        setUser(profileUser);
+      } catch (error) {
+        console.error('Unable to load the Firebase user profile:', error.message);
+        setUser({ ...firebaseUser, role: 'donor' });
+      } finally {
+        setLoading(false);
+      }
+    });
+    return unsubscribe;
   }, []);
 
   const signIn = async ({ email, password }) => {
-    if (!isSupabaseConfigured) throw new Error('Add your Supabase URL and anon key to frontend/.env to enable accounts.');
-    const supabase = await initializeAuth();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
+    if (!isFirebaseConfigured) throw new Error('Configure Firebase in frontend/.env to enable accounts.');
+    try {
+      const { user: firebaseUser } = await signInWithEmailAndPassword(auth, email, password);
+      const profileUser = await loadProfile(firebaseUser, null);
+      setUser(profileUser);
+      return { user: profileUser };
+    } catch (error) {
+      throw new Error(getAuthError(error), { cause: error });
+    }
   };
 
   const signUp = async ({ email, password, full_name, role }) => {
-    if (!isSupabaseConfigured) throw new Error('Add your Supabase URL and anon key to frontend/.env to enable accounts.');
-    const supabase = await initializeAuth();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name, role } }
-    });
-    if (error) throw error;
-    return data;
+    if (!isFirebaseConfigured) throw new Error('Configure Firebase in frontend/.env to enable accounts.');
+    const profileIntent = { full_name, role };
+    profileIntentRef.current = profileIntent;
+    try {
+      const { user: firebaseUser } = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(firebaseUser, { displayName: full_name });
+      const profileUser = await loadProfile(firebaseUser, profileIntent);
+      setUser(profileUser);
+      return { user: profileUser };
+    } catch (error) {
+      throw new Error(getAuthError(error), { cause: error });
+    } finally {
+      profileIntentRef.current = null;
+    }
   };
 
   const signInWithGoogle = async () => {
-    if (!isSupabaseConfigured) throw new Error('Configure Supabase first, then enable Google under Authentication → Providers.');
-    const supabase = await initializeAuth();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: new URL('/auth/callback', window.location.origin).toString(),
-        queryParams: { prompt: 'select_account' }
-      }
-    });
-    if (error) throw error;
-    return data;
+    if (!isFirebaseConfigured) throw new Error('Configure Firebase in frontend/.env to enable accounts.');
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      const { user: firebaseUser } = await signInWithPopup(auth, provider);
+      const profileUser = await loadProfile(firebaseUser, null);
+      setUser(profileUser);
+      return profileUser;
+    } catch (error) {
+      throw new Error(getAuthError(error), { cause: error });
+    }
   };
 
   const signOut = async () => {
-    const supabase = await initializeAuth();
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    await firebaseSignOut(auth);
   };
 
   const value = useMemo(
-    () => ({ user, session, loading, signIn, signUp, signInWithGoogle, signOut }),
-    [user, session, loading]
+    () => ({ user, loading, signIn, signUp, signInWithGoogle, signOut }),
+    [user, loading]
   );
-
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

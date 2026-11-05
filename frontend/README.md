@@ -11,4 +11,4 @@ npm run dev
 
 ## Environment
 
-Create a `.env` file from `.env.example` and set the values for Supabase and API URL.
+Create a `.env` file from `.env.example` and add your Firebase web app configuration and API URL. Configure email/password and Google sign-in in Firebase Authentication.

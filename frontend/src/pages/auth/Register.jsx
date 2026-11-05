@@ -6,7 +6,7 @@ import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import GoogleMark from '../../components/common/GoogleMark';
 import { useAuth } from '../../context/AuthContext';
-import { getPostAuthPath, saveAuthRedirect } from '../../utils/authRedirect';
+import { getPostAuthPath } from '../../utils/authRedirect';
 
 export default function Register() {
   const { signUp, signInWithGoogle } = useAuth();
@@ -22,19 +22,14 @@ export default function Register() {
     const form = event.currentTarget;
     setBusy(true);
     try {
-      const { session } = await signUp({
+      const { user } = await signUp({
         full_name: form.full_name.value.trim(),
         email: form.email.value.trim(),
         role: form.role.value,
         password: form.password.value
       });
-      if (!session) {
-        toast.success('Account created. Check your email to verify it, then sign in.');
-        navigate('/login', { state: location.state, replace: true });
-      } else {
-        toast.success('Your account is ready.');
-        navigate(getPostAuthPath(session.user, requestedPath), { replace: true });
-      }
+      toast.success('Your account is ready.');
+      navigate(getPostAuthPath(user, requestedPath), { replace: true });
     } catch (error) {
       toast.error(error.message || 'Unable to create your account.');
     } finally {
@@ -45,10 +40,10 @@ export default function Register() {
   const handleGoogle = async () => {
     setGoogleBusy(true);
     try {
-      saveAuthRedirect(requestedPath);
-      await signInWithGoogle();
+      const user = await signInWithGoogle();
+      toast.success('Your account is ready.');
+      navigate(getPostAuthPath(user, requestedPath), { replace: true });
     } catch (error) {
-      saveAuthRedirect(null);
       toast.error(error.message || 'Google sign-in is unavailable.');
       setGoogleBusy(false);
     }
@@ -98,7 +93,7 @@ export default function Register() {
             </div>
             <button className="btn btn-primary auth-submit" type="submit" disabled={busy}>{busy ? 'Creating account…' : <>Create account <ArrowRight size={17} /></>}</button>
             <p className="auth-switch">Already registered? <Link to="/login">Sign in</Link></p>
-            <p className="auth-note">By continuing, you agree to use this service responsibly. Google sign-in requires configuration in Supabase.</p>
+            <p className="auth-note">By continuing, you agree to use this service responsibly. Google sign-in requires configuration in Firebase Authentication.</p>
           </form>
         </section>
       </main>

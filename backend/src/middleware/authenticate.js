@@ -1,8 +1,8 @@
-import { isSupabaseConfigured, supabase } from '../config/supabase.js';
+import { firebaseAuth, isFirebaseConfigured } from '../config/firebase.js';
 
 const useDemoMode = process.env.USE_DEMO_MODE === 'true' &&
   process.env.NODE_ENV !== 'production' &&
-  !isSupabaseConfigured;
+  !isFirebaseConfigured;
 
 export const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -18,10 +18,10 @@ export const authenticate = async (req, res, next) => {
     return next();
   }
 
-  if (!isSupabaseConfigured) {
+  if (!isFirebaseConfigured) {
     return res.status(503).json({
       success: false,
-      message: 'Authentication is not configured. Add the Supabase environment variables to the backend.'
+      message: 'Authentication is not configured. Add Firebase Admin credentials to the backend.'
     });
   }
 
@@ -30,15 +30,13 @@ export const authenticate = async (req, res, next) => {
   }
 
   try {
-    const { data, error } = await supabase.auth.getUser(token);
-
-    if (error || !data?.user) {
-      return res.status(401).json({ success: false, message: 'Unauthorized: Invalid token' });
-    }
-
-    req.user = data.user;
+    req.user = await firebaseAuth.verifyIdToken(token);
     next();
   } catch (error) {
+    if (error.code === 'auth/argument-error' || error.code === 'auth/id-token-expired' ||
+      error.code === 'auth/invalid-id-token' || error.code === 'auth/invalid-argument') {
+      return res.status(401).json({ success: false, message: 'Unauthorized: Invalid token' });
+    }
     return res.status(503).json({ success: false, message: 'Authentication service is unavailable.' });
   }
 };

@@ -1,4 +1,5 @@
-import { isSupabaseConfigured, supabaseAdmin } from '../config/supabase.js';
+import { isFirebaseConfigured } from '../config/firebase.js';
+import { collection, documentData, now, unavailable } from '../utils/firestore.js';
 
 const demoAvailability = [
   { bloodGroup: 'A+', units: 12 },
@@ -10,44 +11,29 @@ const demoAvailability = [
   { bloodGroup: 'O+', units: 18 },
   { bloodGroup: 'O-', units: 0 }
 ];
+const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-const databaseUnavailable = (res) => res.status(503).json({
-  success: false,
-  message: 'Database is not configured. Add Supabase credentials and run the migrations.'
-});
-
-export const getInventory = async (req, res) => {
-  if (!isSupabaseConfigured) return databaseUnavailable(res);
-
-  const { data, error } = await supabaseAdmin
-    .from('blood_units')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) return res.status(500).json({ success: false, message: error.message });
+export const getInventory = async (_req, res) => {
+  if (!isFirebaseConfigured) return unavailable(res, 'Inventory');
+  const snapshot = await collection('blood_units').limit(500).get();
+  const data = snapshot.docs.map(documentData)
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
   return res.status(200).json({ success: true, data });
 };
 
 export const getAvailability = async (_req, res) => {
-  if (!isSupabaseConfigured) {
-    if (process.env.NODE_ENV === 'production') return databaseUnavailable(res);
+  if (!isFirebaseConfigured) {
+    if (process.env.NODE_ENV === 'production') return unavailable(res, 'Blood availability');
     return res.status(200).json({ success: true, demo: true, data: demoAvailability });
   }
-
   const today = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabaseAdmin
-    .from('blood_units')
-    .select('blood_group')
-    .eq('screening_status', 'approved')
-    .eq('unit_status', 'available')
-    .gte('expiry_date', today);
-
-  if (error) return res.status(500).json({ success: false, message: error.message });
-  const counts = (data || []).reduce((result, item) => {
-    result[item.blood_group] = (result[item.blood_group] || 0) + 1;
-    return result;
-  }, {});
-  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  const snapshot = await collection('blood_units').limit(1000).get();
+  const counts = {};
+  for (const unit of snapshot.docs.map(documentData)) {
+    if (unit.screening_status === 'approved' && unit.unit_status === 'available' && unit.expiry_date >= today) {
+      counts[unit.blood_group] = (counts[unit.blood_group] || 0) + 1;
+    }
+  }
   return res.status(200).json({
     success: true,
     data: bloodGroups.map((bloodGroup) => ({ bloodGroup, units: counts[bloodGroup] || 0 }))
@@ -55,40 +41,34 @@ export const getAvailability = async (_req, res) => {
 };
 
 export const createInventory = async (req, res) => {
-  if (!isSupabaseConfigured) return databaseUnavailable(res);
+  if (!isFirebaseConfigured) return unavailable(res, 'Inventory');
   const { unit_id, blood_group, component, collection_date, expiry_date } = req.body;
   if (!unit_id || !blood_group || !component) {
     return res.status(400).json({ success: false, message: 'unit_id, blood_group, and component are required.' });
   }
-
-  const { data, error } = await supabaseAdmin
-    .from('blood_units')
-    .insert({ unit_id, blood_group, component, collection_date, expiry_date })
-    .select()
-    .single();
-
-  if (error) return res.status(400).json({ success: false, message: error.message });
-  return res.status(201).json({ success: true, data });
+  const duplicate = await collection('blood_units').where('unit_id', '==', unit_id).limit(1).get();
+  if (!duplicate.empty) return res.status(409).json({ success: false, message: 'That unit_id already exists.' });
+  const data = {
+    unit_id, blood_group, component, collection_date: collection_date || null,
+    expiry_date: expiry_date || null, screening_status: 'pending', storage_status: 'stored',
+    unit_status: 'available', created_at: now(), updated_at: now()
+  };
+  const unitRef = collection('blood_units').doc();
+  await unitRef.create(data);
+  return res.status(201).json({ success: true, data: { id: unitRef.id, ...data } });
 };
 
 export const updateInventory = async (req, res) => {
-  if (!isSupabaseConfigured) return databaseUnavailable(res);
+  if (!isFirebaseConfigured) return unavailable(res, 'Inventory');
   const allowedFields = ['screening_status', 'storage_status', 'unit_status', 'expiry_date'];
-  const updates = Object.fromEntries(
-    Object.entries(req.body).filter(([key]) => allowedFields.includes(key))
-  );
-  if (Object.keys(updates).length === 0) {
+  const updates = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowedFields.includes(key)));
+  if (!Object.keys(updates).length) {
     return res.status(400).json({ success: false, message: 'No valid inventory fields were provided.' });
   }
-
-  const { data, error } = await supabaseAdmin
-    .from('blood_units')
-    .update(updates)
-    .eq('id', req.params.id)
-    .select()
-    .maybeSingle();
-
-  if (error) return res.status(400).json({ success: false, message: error.message });
-  if (!data) return res.status(404).json({ success: false, message: 'Inventory unit not found.' });
-  return res.status(200).json({ success: true, data });
+  const unitRef = collection('blood_units').doc(req.params.id);
+  const snapshot = await unitRef.get();
+  if (!snapshot.exists) return res.status(404).json({ success: false, message: 'Inventory unit not found.' });
+  updates.updated_at = now();
+  await unitRef.update(updates);
+  return res.status(200).json({ success: true, data: { id: snapshot.id, ...snapshot.data(), ...updates } });
 };

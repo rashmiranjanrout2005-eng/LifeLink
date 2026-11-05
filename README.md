@@ -1,12 +1,11 @@
 # Blood Bank Management System
 
-This project contains a full-stack Blood Bank Management System with a React frontend, Express backend, Supabase database, and deployment instructions.
+This project contains a full-stack Blood Bank Management System with a React frontend, Express backend, Firebase Authentication, and Cloud Firestore.
 
 ## Project Structure
 
 - frontend/
 - backend/
-- supabase/
 - docs/
 
 ## Quick Start
@@ -19,16 +18,14 @@ This project contains a full-stack Blood Bank Management System with a React fro
    npm --prefix backend install
    ```
 
-3. Configure Supabase:
-   - Create a Supabase project.
-   - Run every SQL migration in `supabase/migrations/` in filename order.
-   - Copy `frontend/.env.example` to `frontend/.env` and set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-   - Copy `backend/.env.example` to `backend/.env` and set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY`.
-   - Keep the backend service-role key secret; never add it to a `VITE_*` variable or commit it.
-4. To enable Google sign-in:
-   - Configure the Google provider in Supabase Authentication → Providers.
-   - In Google Cloud Console, allow the Supabase OAuth callback URL shown by Supabase as an authorized redirect URI.
-   - In Supabase Authentication → URL Configuration, allow `http://localhost:5173/auth/callback` and your deployed site's `/auth/callback` URL.
+3. Configure Firebase:
+   - Use the Firebase project configured in `frontend/src/firebase.js`, or set its web app values in `frontend/.env`.
+   - Enable Email/Password and Google under Firebase Console → Authentication → Sign-in method.
+   - Create a Cloud Firestore database and deploy `firestore.rules`.
+   - Copy `backend/.env.example` to `backend/.env`; set `FIREBASE_PROJECT_ID` and `GOOGLE_APPLICATION_CREDENTIALS` to a service-account JSON file stored outside the repository. Never commit that credential file.
+   - Ensure the frontend and backend use the same Firebase project.
+   - Add `http://localhost:5173` and your deployed domain to Firebase Authentication's authorized domains.
+4. To enable Google sign-in, enable the Google provider in Firebase Console → Authentication → Sign-in method.
 5. Start the backend and frontend in separate PowerShell terminals:
 
    ```powershell
@@ -43,21 +40,17 @@ This project contains a full-stack Blood Bank Management System with a React fro
 
 6. Open `http://localhost:5173`.
 
-The UI has a local sample-data mode for exploring the public site without credentials. Sample stock and donor listings are marked as demo data; authentication, donor registration, requests, and persistent database operations require a configured Supabase project. Set `USE_DEMO_MODE=false` and `NODE_ENV=production` in deployment environments.
-
-### Google OAuth setup
-
-In the Google Cloud Console, create an OAuth client ID for a web application and add Supabase's OAuth callback URL as an authorized redirect URI. Enter the Google client ID and secret in the Supabase Google provider settings. Add `http://localhost:5173/auth/callback` and the deployed site's `/auth/callback` to Supabase's allowed redirect URLs. The app starts the OAuth flow through Supabase, sends users to its dedicated callback route, and does not store Google client secrets.
+The UI has a local sample-data mode for exploring the public site without credentials. Sample stock and donor listings are marked as demo data; authentication, donor registration, requests, and persistent database operations require Firebase web configuration and backend Admin credentials. Set `USE_DEMO_MODE=false` and `NODE_ENV=production` in deployment environments.
 
 ### Database and API
 
 - The Express API runs on `http://localhost:5000`; health check: `/api/health`.
-- Supabase Auth creates a matching `profiles` record through the auth-user trigger in migration `010`.
+- Firebase Authentication ID tokens protect backend API routes; user profiles and application records are stored in Firestore.
 - Blood availability and donor search are public, read-only API endpoints.
-- Donor profiles, blood requests, donations, hospitals, notifications, and inventory are backed by Supabase queries. Blood request status and history are updated atomically by the migration `011` RPC.
-- Row-level security policies are defined in migrations `009`–`011`. The backend service-role key bypasses RLS, so protected API routes enforce authentication and role checks.
-- To promote an administrator, use the Supabase SQL editor as a trusted project owner: `update public.profiles set role = 'admin' where email = 'trusted-account@example.com';`. Never expose an admin role selector in public signup.
+- Donors, blood requests, donations, hospitals, notifications, and inventory are stored in Firestore; backend routes enforce authentication and role checks.
+- New accounts cannot choose the administrator role. Promote a trusted user by updating that user's document in the Firestore `profiles` collection through Firebase Console.
+- Existing Supabase data is not automatically copied; export and migrate it before switching any live deployment.
 
 ## Free Hosting
 
-The site and API can be deployed together on Vercel Hobby ($0) with Supabase Free for authentication and database storage. No paid trial or payment method is required for this setup. Follow `docs/deployment-guide.md`; never expose the Supabase service-role key in a `VITE_*` variable.
+The site and API can be deployed together on Vercel Hobby ($0) with Firebase. Follow `docs/deployment-guide.md`; never expose the Firebase Admin service-account credential in a `VITE_*` variable.

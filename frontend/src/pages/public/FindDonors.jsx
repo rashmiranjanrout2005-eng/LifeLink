@@ -54,7 +54,7 @@ export default function FindDonors() {
               <div><span className="eyebrow section-eyebrow">COMMUNITY DONORS</span><h2>{state === 'results' ? `${donors.length} ${donors.length === 1 ? 'match' : 'matches'} found` : 'Search nearby donors'}</h2><p>Donor details are protected. Search only shows opted-in, available donors.</p></div>
               <span className="results-private"><Users size={15} /> Privacy protected</span>
             </div>
-            {demoMode && <p className="availability-note">Sample donor listings are shown in demo mode. Connect Supabase to search real, opted-in donors.</p>}
+            {demoMode && <p className="availability-note">Sample donor listings are shown in demo mode. Configure Firebase to search real, opted-in donors.</p>}
             {state === 'error' && <div className="search-message search-error">{errorMessage}</div>}
             {state === 'idle' && <div className="search-empty"><span><Search size={22} /></span><h3>Start with a blood group and location</h3><p>We’ll look for available, opted-in donors matching your search.</p></div>}
             {state === 'results' && donors.length === 0 && <div className="search-empty"><span><Heart size={22} /></span><h3>No matching donors yet</h3><p>Try a nearby city or a different blood group, or check again later.</p></div>}

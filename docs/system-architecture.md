@@ -1,11 +1,11 @@
 # System Architecture
 
-This project uses a React frontend, Express backend, Supabase database, and authentication services.
+This project uses a React frontend, Express backend, Firebase Authentication, and Cloud Firestore.
 
 ## Layers
 
 - Frontend: React + Vite
 - Backend: Node.js + Express
-- Database: Supabase PostgreSQL
-- Authentication: Supabase Auth
-- Storage: Supabase Storage
+- Database: Cloud Firestore
+- Authentication: Firebase Authentication
+- Storage: Not currently configured

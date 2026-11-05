@@ -51,7 +51,7 @@ The system handles donor registration, inventory control, request management, no
 
 ## 12. Feasibility Study
 
-Technical, operational, and financial feasibility are favorable using Vercel Hobby and Supabase free tiers.
+Technical, operational, and financial feasibility are favorable using Vercel Hobby and Firebase free-tier services.
 
 ## 13. Hardware Requirements
 
@@ -64,7 +64,7 @@ Technical, operational, and financial feasibility are favorable using Vercel Hob
 - Node.js 18+
 - React + Vite
 - Express.js
-- Supabase
+- Firebase Authentication and Cloud Firestore
 - VS Code
 
 ## 15. System Architecture
@@ -73,8 +73,7 @@ Technical, operational, and financial feasibility are favorable using Vercel Hob
 flowchart LR
 A[User] --> B[Frontend React]
 B --> C[Express Backend]
-C --> D[Supabase Database]
-D --> E[Realtime & Auth]
+C --> D[Firebase Authentication and Firestore]
 ```
 
 ## 16. Data Flow Diagram
@@ -109,7 +108,7 @@ F[Admin] --> G[Manage Inventory]
 
 ## 19. Database Design
 
-The tables include profiles, donors, hospitals, blood_units, donations, blood_requests, notifications, and audit records.
+Firestore collections include profiles, donors, hospitals, blood_units, donations, blood_requests, notifications, and request_history.
 
 ## 20. Module Description
 
@@ -139,7 +138,7 @@ The application is ready for deployment with a working structure and configurati
 
 ## 25. Limitations
 
-- needs real production Supabase credentials
+- needs production Firebase configuration and Admin SDK credentials
 - free-tier service restrictions apply
 
 ## 26. Future Enhancements
@@ -154,7 +153,7 @@ The BBMS project provides a complete digital foundation for managing blood donat
 
 ## 28. References
 
-- Supabase documentation
+- Firebase documentation
 - Vercel documentation
 - Express documentation
 - React documentation

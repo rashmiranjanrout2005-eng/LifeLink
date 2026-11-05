@@ -1,12 +1,11 @@
 import { Router } from 'express';
-import { register, login, logout, me } from '../controllers/authController.js';
+import { createProfile, me } from '../controllers/authController.js';
 import { authenticate } from '../middleware/authenticate.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/logout', logout);
-router.get('/me', authenticate, me);
+router.post('/profile', authenticate, asyncHandler(createProfile));
+router.get('/me', authenticate, asyncHandler(me));
 
 export default router;

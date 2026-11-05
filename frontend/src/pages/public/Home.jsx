@@ -145,7 +145,7 @@ export default function Home() {
               ))}
             </div>
             {inventoryState === 'unavailable' && <p className="availability-note">Inventory service is offline. Showing no live stock values—please try again later.</p>}
-            {inventoryState === 'demo' && <p className="availability-note">Demo inventory is sample data. Connect your Supabase project to display real stock.</p>}
+            {inventoryState === 'demo' && <p className="availability-note">Demo inventory is sample data. Configure Firebase to display live stock.</p>}
           </div>
         </section>
 

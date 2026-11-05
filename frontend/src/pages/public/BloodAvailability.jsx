@@ -50,7 +50,7 @@ export default function BloodAvailability() {
               })}
             </div>
             {state === 'error' && <p className="availability-note">We couldn't reach the inventory service. Please try again later.</p>}
-            {state === 'demo' && <p className="availability-note">These are sample demo numbers, not actual blood bank stock. Connect Supabase to load live inventory.</p>}
+            {state === 'demo' && <p className="availability-note">These are sample demo numbers, not actual blood bank stock. Configure Firebase to load live inventory.</p>}
             <p className="stock-disclaimer">Stock changes as donations are screened, reserved, and issued. Confirm availability directly with the blood bank before travelling.</p>
           </div>
         </section>

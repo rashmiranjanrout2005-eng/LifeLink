@@ -9,7 +9,6 @@ const BecomeDonor = lazy(() => import('./pages/public/BecomeDonor'));
 const Contact = lazy(() => import('./pages/public/Contact'));
 const Login = lazy(() => import('./pages/auth/Login'));
 const Register = lazy(() => import('./pages/auth/Register'));
-const AuthCallback = lazy(() => import('./pages/auth/AuthCallback'));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
 const VerifyEmail = lazy(() => import('./pages/auth/VerifyEmail'));
@@ -51,7 +50,6 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />

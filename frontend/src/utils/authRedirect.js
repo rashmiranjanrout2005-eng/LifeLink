@@ -1,7 +1,7 @@
 const authRedirectKey = 'lifelink.authRedirect';
 
 export function getUserHomePath(user) {
-  const role = user?.app_metadata?.role || user?.user_metadata?.role || 'donor';
+  const role = user?.role || 'donor';
   if (role === 'admin') return '/admin';
   if (role === 'hospital') return '/hospital/request-blood';
   if (role === 'patient') return '/hospital/request-blood';

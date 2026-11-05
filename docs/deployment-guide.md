@@ -2,7 +2,7 @@
 
 1. Use the separate LifeLink GitHub repository; do not use the unrelated StudentMate repository.
 2. In Supabase, run all SQL files in `supabase/migrations/` in filename order and enable email/password authentication.
-3. In Vercel, import the LifeLink repository on the **Hobby ($0)** plan. Do not start a Pro trial or add a payment method. Keep the project root directory set to the repository root; the root `vercel.json` builds the frontend and routes `/api/*` to a serverless function.
+3. In Vercel, import the LifeLink repository on the **Hobby ($0)** plan. Do not start a Pro trial or add a payment method. Keep the project root directory set to the repository root; the root `vercel.json` builds the frontend, and `api/[...path].js` serves the Express backend for `/api/*`.
 4. Add these environment variables in Vercel (Production, and Preview if desired):
    - `VITE_SUPABASE_URL`: Supabase project URL.
    - `VITE_SUPABASE_ANON_KEY`: Supabase anon/publishable key.

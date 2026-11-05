@@ -223,6 +223,18 @@ body { color: #242637; background: #fffdfb; font-family: Inter, "Segoe UI", Aria
   .request-row { grid-template-columns: auto 1fr; }.request-status { grid-column: 2; justify-self: start; }.request-summary { min-width: 0; }
   .dashboard-charts { grid-template-columns: 1fr; }
 }
+@media (max-width: 760px) {
+  .app-shell { grid-template-columns: minmax(0,1fr); }
+  .sidebar { min-width: 0; padding: 1rem; }
+  .sidebar nav { flex-direction: row; gap: .45rem; margin-top: .75rem; overflow-x: auto; padding-bottom: .25rem; -webkit-overflow-scrolling: touch; }
+  .sidebar nav a { flex: 0 0 auto; padding: .65rem .8rem; white-space: nowrap; }
+  .content-panel { min-width: 0; padding: 1rem; }
+  .page-shell { padding: 1.25rem; }
+}
+@media (max-width: 420px) {
+  .content-panel { padding: .7rem; }
+  .page-shell { padding: 1rem; }
+}
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   [data-reveal] { opacity: 1 !important; transform: none !important; }
